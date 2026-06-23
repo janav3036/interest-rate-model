@@ -16,7 +16,7 @@ def vasicek_log_likelihood(params: np.ndarray, rates: np.ndarray, dt: float) -> 
 
 def calibrate_vasicek(rates: np.ndarray, dt: float = 1/252) -> dict:
     r0 = [0.5, np.mean(rates), 0.01]
-    bounds = [(1e-4, None), (1e-4, None), (1e-4, None)]
+    bounds = [(1e-4, None), (0.01, 0.20), (1e-4, None)]
 
     result = minimize(
         vasicek_log_likelihood,

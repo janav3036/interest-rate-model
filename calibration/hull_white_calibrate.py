@@ -19,7 +19,7 @@ def calibrate_hull_white_historical(rate_series: np.ndarray,
     coeffs, _, _, _ = np.linalg.lstsq(A, dr, rcond=None)
     intercept, slope = coeffs
 
-    a = -slope / dt
+    a = max(-slope / dt, 1e-4)
     residuals = dr - (intercept + slope * r)
     sigma = np.std(residuals) / np.sqrt(dt)
 
