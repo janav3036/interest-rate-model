@@ -13,3 +13,8 @@ build/
 *.ipynb_checkpoints
 .DS_Store
 *.log
+
+# Internal planning docs
+CLAUDE.md
+PHASES.md
+project_4_interest_rates.md
