@@ -8,41 +8,31 @@ Three short-rate models (Vasicek, CIR, Hull-White) calibrated to RBI benchmark G
 
 The Heston stochastic volatility model uses:
 
-```
-dV = κ(θ − V) dt + σ√V dW
-```
+$$dV = \kappa(\theta - V)\,dt + \sigma\sqrt{V}\,dW$$
 
-as its variance process. That **is** the CIR interest rate model — same SDE, same affine structure, same Feller condition. The only difference is that in Heston, V(t) is latent, while in CIR, r(t) is directly observable from market yields.
+as its variance process. That **is** the CIR interest rate model — same SDE, same affine structure, same Feller condition. The only difference is that in Heston, $V(t)$ is latent, while in CIR, $r(t)$ is directly observable from market yields.
 
-The Feller condition `2κθ > σ²` appears identically in both contexts. Implementing CIR here, after Heston, makes that mathematical continuity explicit: the `ncx2` MLE used to calibrate CIR is the same non-central chi-squared distribution underlying Heston option pricing.
+The Feller condition $2\kappa\theta > \sigma^2$ appears identically in both contexts. Implementing CIR here, after Heston, makes that mathematical continuity explicit: the `ncx2` MLE used to calibrate CIR is the same non-central chi-squared distribution underlying Heston option pricing.
 
 ---
 
 ## Models
 
 ### Vasicek (1977)
-```
-dr = κ(θ − r) dt + σ dW
-```
+$$dr = \kappa(\theta - r)\,dt + \sigma\,dW$$
 Gaussian short rate with mean reversion. Analytically tractable; negative rates are possible. Calibrated via MLE using the exact Gaussian transition density.
 
 ### CIR — Cox-Ingersoll-Ross (1985)
-```
-dr = κ(θ − r) dt + σ√r dW
-```
-Non-negative rates when the Feller condition `2κθ > σ²` holds. Calibrated via MLE using the exact non-central chi-squared transition density (`scipy.stats.ncx2`).
+$$dr = \kappa(\theta - r)\,dt + \sigma\sqrt{r}\,dW$$
+Non-negative rates when the Feller condition $2\kappa\theta > \sigma^2$ holds. Calibrated via MLE using the exact non-central chi-squared transition density (`scipy.stats.ncx2`).
 
 ### Hull-White (1990)
-```
-dr = (θ(t) − a·r) dt + σ dW
-```
-θ(t) is computed **analytically** from the initial yield curve — not optimised:
+$$dr = (\theta(t) - a r)\,dt + \sigma\,dW$$
+$\theta(t)$ is computed **analytically** from the initial yield curve — not optimised:
 
-```
-θ(t) = ∂f^M(0,t)/∂t + a·f^M(0,t) + σ²(1 − e^{−2at}) / (2a)
-```
+$$\theta(t) = \frac{\partial f^M(0,t)}{\partial t} + a f^M(0,t) + \frac{\sigma^2\left(1 - e^{-2at}\right)}{2a}$$
 
-This gives Hull-White an exact fit to observed market yields at t = 0 by construction. Nelson-Siegel smoothing stabilises the forward rate derivative before computing θ(t); raw linear interpolation introduces kinks that corrupt the result.
+This gives Hull-White an exact fit to observed market yields at $t=0$ by construction. Nelson-Siegel smoothing stabilises the forward rate derivative before computing $\theta(t)$; raw linear interpolation introduces kinks that corrupt the result.
 
 ---
 
@@ -50,7 +40,7 @@ This gives Hull-White an exact fit to observed market yields at t = 0 by constru
 
 ### Calibrated Parameters (Indian G-Sec, Jun 2024 – May 2025)
 
-| Model      | κ / a  | θ      | σ      | AIC      |
+| Model      | $\kappa$ / $a$ | $\theta$ | $\sigma$ | AIC |
 |------------|--------|--------|--------|----------|
 | Vasicek    | 0.073  | 0.0100 | 0.0012 | −4075.6  |
 | CIR        | 0.500  | 0.0699 | 0.0500 | −3103.1  |
@@ -139,9 +129,9 @@ RBI benchmark G-Sec yields sourced from the DBIE portal. The committed CSV (`dat
 
 ## Validation Gates
 
-- Flat yield curve → `P(0,t) = exp(−0.065·t)` within numerical precision
-- `vasicek_bond_price(r=0.05, κ=0.5, θ=0.05, σ=0.02, τ=5)` ≈ 0.7788
-- CIR bond prices converge to Vasicek as σ → 0
-- All CIR simulated paths ≥ 0 when Feller condition holds
+- Flat yield curve → $P(0,t) = e^{-0.065 t}$ within numerical precision
+- `vasicek_bond_price(r=0.05, κ=0.5, θ=0.05, σ=0.02, τ=5)` $\approx 0.7788$
+- CIR bond prices converge to Vasicek as $\sigma \to 0$
+- All CIR simulated paths $\geq 0$ when Feller condition holds
 - Hull-White model yields match market within 1 bp at all tenors
-- Cap-floor parity: `Cap(K*) − Floor(K*) = 0` at the par swap rate
+- Cap-floor parity: $\text{Cap}(K^*) - \text{Floor}(K^*) = 0$ at the par swap rate
